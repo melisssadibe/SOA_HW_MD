@@ -1,0 +1,29 @@
+workspace {
+  model {
+    user = person "User" "Создает посты, лайкает, комментирует"
+    api = container "API gateway" "Маршрутизация запросов"
+    users = container "Users service" "Регистрация и авторизация пользователей" "PostgreSQL"
+    posts = container "Posts service" "Хранит посты и комментарии" "PostgreSQL"
+    stats = container "Stats service" "Считает лайки и просмотры" "ClickHouse"
+
+    db_users = containerDb "Users DB" "PostgreSQL" "Хранит данные пользователей"
+    db_posts = containerDb "Posts DB" "PostgreSQL" "Хранит посты и комментарии"
+    db_stats = containerDb "Stats DB" "ClickHouse" "Хранит просмотры и лайки"
+
+    user -> api : "HTTP-запросы: регистрация, посты, лайки"
+    api -> users : "POST /register, POST /login"
+    api -> posts : "POST /create, GET /feed"
+    api -> stats : "POST /like, GET /stats"
+
+    users -> db_users : "Запись и чтение данных пользователей"
+    posts -> db_posts : "Хранение постов и комментариев"
+    stats -> db_stats : "Запись просмотров и лайков"
+  }
+
+  views {
+    container api {
+      include *
+      autolayout lr
+    }
+  }
+}
