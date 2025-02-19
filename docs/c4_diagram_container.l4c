@@ -23,7 +23,6 @@ workspace {
   views {
     container api {
       include *
-      autolayout lr
     }
   }
 }
