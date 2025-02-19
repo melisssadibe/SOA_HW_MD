@@ -1,22 +1,44 @@
-workspace {
-  model {
-    user = person "User" "Создает посты, лайкает, комментирует"
-    api = softwareSystem "API gateway" "Принимает запросы и отправляет их в сервисы"
-    users = softwareSystem "Users service" "Хранит пользователей"
-    posts = softwareSystem "Posts service" "Хранит посты и комментарии"
-    stats = softwareSystem "Stats service" "Считает лайки и просмотры"
-
-    user -> api : "Запросы: регистрация, логин, посты, лайки, комментарии"
-    api -> users : "Передача данных пользователей"
-    api -> posts : "Создание и получение постов"
-    api -> stats : "Фиксирование лайков и просмотров"
-  }
-
-  views {
-    systemContext api {
-      include *
-      autolayout lr
+specification {
+  element actor {
+    style {
+      shape person
+      color secondary
     }
   }
+  element system
 }
 
+model {
+  user = actor "User" {
+    description "Создает посты, лайкает, комментирует"
+  }
+
+  api = system "API gateway" {
+    description "Принимает запросы и перенаправляет их в сервисы"
+  }
+
+  users = system "Users service" {
+    description "Хранит информацию о пользователях, выполняет регистрацию и авторизацию"
+  }
+
+  posts = system "Posts service" {
+    description "Создает, хранит посты и комментарии"
+  }
+
+  stats = system "Stats service" {
+    description "Считает лайки, просмотры и анализирует статистику"
+  }
+
+  user -> api "Отправляет HTTP-запросы: регистрация, посты, лайки"
+  api -> users "Передает запросы на регистрацию, логин"
+  api -> posts "Создает и получает посты"
+  api -> stats "Фиксирует лайки и просмотры"
+}
+
+views {
+  view index {
+    title "Контекстная диаграмма"
+    include *
+    autolayout lr
+  }
+}
