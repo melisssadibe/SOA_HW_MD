@@ -39,6 +39,5 @@ views {
   view index {
     title "Контекстная диаграмма"
     include *
-    autolayout lr
   }
 }
