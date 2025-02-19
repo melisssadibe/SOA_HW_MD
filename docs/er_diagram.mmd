@@ -1,0 +1,35 @@
+erDiagram
+    Users {
+        int id PK
+        string username
+        string email
+        string password_hash
+        string role
+        datetime created_at
+    }
+    Posts {
+        int id PK
+        int user_id FK
+        string content
+        datetime created_at
+        int likes_count
+        int views_count
+    }
+    Comments {
+        int id PK
+        int user_id FK
+        int post_id FK
+        string text
+        datetime created_at
+    }
+    Likes {
+        int id PK
+        int user_id FK
+        int post_id FK
+        datetime created_at
+    }
+    Users ||--o{ Posts : "creates"
+    Users ||--o{ Comments : "writes"
+    Users ||--o{ Likes : "likes"
+    Users ||--o{ Comments : "has"
+    Users ||--o{ Likes : "receives"
