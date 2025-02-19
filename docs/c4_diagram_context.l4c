@@ -1,10 +1,10 @@
 workspace {
   model {
     user = person "User" "Создает посты, лайкает, комментирует"
-    api = softwareSystem "API Gateway" "Принимает запросы и отправляет их в сервисы"
-    users = softwareSystem "Users Service" "Хранит пользователей"
-    posts = softwareSystem "Posts Service" "Хранит посты и комментарии"
-    stats = softwareSystem "Stats Service" "Считает лайки и просмотры"
+    api = softwareSystem "API gateway" "Принимает запросы и отправляет их в сервисы"
+    users = softwareSystem "Users service" "Хранит пользователей"
+    posts = softwareSystem "Posts service" "Хранит посты и комментарии"
+    stats = softwareSystem "Stats service" "Считает лайки и просмотры"
 
     user -> api : "Запросы: регистрация, логин, посты, лайки, комментарии"
     api -> users : "Передача данных пользователей"
