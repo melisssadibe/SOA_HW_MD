@@ -1,1 +1,22 @@
+workspace {
+  model {
+    user = person "User" "Создает посты, лайкает, комментирует"
+    api = softwareSystem "API Gateway" "Принимает запросы и отправляет их в сервисы"
+    users = softwareSystem "Users Service" "Хранит пользователей"
+    posts = softwareSystem "Posts Service" "Хранит посты и комментарии"
+    stats = softwareSystem "Stats Service" "Считает лайки и просмотры"
+
+    user -> api : "Запросы: регистрация, логин, посты, лайки, комментарии"
+    api -> users : "Передача данных пользователей"
+    api -> posts : "Создание и получение постов"
+    api -> stats : "Фиксирование лайков и просмотров"
+  }
+
+  views {
+    systemContext api {
+      include *
+      autolayout lr
+    }
+  }
+}
 
