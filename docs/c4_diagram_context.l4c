@@ -6,6 +6,8 @@ specification {
     }
   }
   element system
+  element container
+  element containerDb
 }
 
 model {
@@ -13,31 +15,55 @@ model {
     description "Создает посты, лайкает, комментирует"
   }
 
-  api = system "API gateway" {
-    description "Принимает запросы и перенаправляет их в сервисы"
+  api = container "API gateway" {
+    description "Принимает запросы от пользователей и передает их в сервисы"
   }
 
-  users = system "Users service" {
-    description "Хранит информацию о пользователях, выполняет регистрацию и авторизацию"
+  users = container "Users service" {
+    description "Регистрация, авторизация и управление пользователями"
+    technology "PostgreSQL"
   }
 
-  posts = system "Posts service" {
+  posts = container "Posts service" {
     description "Создает, хранит посты и комментарии"
+    technology "PostgreSQL"
   }
 
-  stats = system "Stats service" {
-    description "Считает лайки, просмотры и анализирует статистику"
+  stats = container "Stats service" {
+    description "Считает лайки и просмотры"
+    technology "ClickHouse"
   }
 
-  user -> api "Отправляет HTTP-запросы: регистрация, посты, лайки"
-  api -> users "Передает запросы на регистрацию, логин"
-  api -> posts "Создает и получает посты"
-  api -> stats "Фиксирует лайки и просмотры"
+  db_users = containerDb "Users DB" {
+    description "Хранит данные пользователей"
+    technology "PostgreSQL"
+  }
+
+  db_posts = containerDb "Posts DB" {
+    description "Хранит посты и комментарии"
+    technology "PostgreSQL"
+  }
+
+  db_stats = containerDb "Stats DB" {
+    description "Хранит просмотры и лайки"
+    technology "ClickHouse"
+  }
+
+  user -> api "HTTP-запросы: регистрация, посты, лайки"
+
+  api -> users "POST /register, POST /login"
+  api -> posts "POST /create, GET /feed"
+  api -> stats "POST /like, GET /stats"
+
+  users -> db_users "Читает/записывает данные пользователей"
+  posts -> db_posts "Читает/записывает посты и комментарии"
+  stats -> db_stats "Записывает просмотры и лайки"
+
 }
 
 views {
   view index {
-    title "Контекстная диаграмма"
+    title "Контейнерная диаграмма"
     include *
   }
 }
