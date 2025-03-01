@@ -1,0 +1,23 @@
+erDiagram
+    USERS {
+        int id PK
+        string email "unique"
+        string password_hash
+        string full_name
+        datetime created_at
+    }
+    
+    SESSIONS {
+        int id PK
+        int user_id FK
+    }
+    
+    PROFILES {
+        int id PK
+        int user_id FK
+        string bio
+        int followers_count
+    }
+    
+    USERS ||--|{ SESSIONS : has
+    USERS ||--|| PROFILES : has
