@@ -1,0 +1,25 @@
+erDiagram
+    USERS ||--|{ POSTS : publishes
+    USERS ||--|{ COMMENTS : writes
+    USERS ||--|{ LIKES : likes
+
+    POSTS {
+        int id PK
+        int user_id FK
+        string content
+        datetime created_at
+    }
+    
+    COMMENTS {
+        int id PK
+        int post_id FK
+        int user_id FK
+        string text
+        datetime created_at
+    }
+    
+    LIKES {
+        int id PK
+        int post_id FK
+        int user_id FK
+    }
