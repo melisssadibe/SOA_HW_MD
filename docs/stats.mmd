@@ -1,0 +1,23 @@
+erDiagram
+    STATS ||--|{ POST_VIEWS : viewed_by
+    STATS ||--|{ POST_LIKES_STATS : receives_likes
+    STATS ||--|{ POST_COMMENTS_STATS : receives_comments
+
+    POST_VIEWS {
+        int id PK
+        int post_id FK
+        int user_id FK
+        datetime timestamp
+    }
+    
+    POST_LIKES_STATS {
+        int post_id PK
+        int likes_count
+        datetime updated_at
+    }
+    
+    POST_COMMENTS_STATS {
+        int post_id PK
+        int comments_count
+        datetime updated_at
+    }
