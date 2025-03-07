@@ -1,0 +1,8 @@
+flask
+flask_sqlalchemy
+flask_cors
+psycopg2-binary
+werkzeug
+pyjwt
+pytest
+flask-testing
