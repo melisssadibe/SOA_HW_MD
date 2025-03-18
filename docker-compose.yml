@@ -22,7 +22,7 @@ services:
   api-gateway:
     build: ./api-gateway
     ports:
-      - "8888:5000"
+      - "8000:5000"
     depends_on:
       - users-service
     environment:

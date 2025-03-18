@@ -1,12 +1,12 @@
 import pytest
 import json
-from ..app import app, db, User
+from app import app, db, User
 from werkzeug.security import generate_password_hash
 
 @pytest.fixture
 def client():
     app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     client = app.test_client()
 
     with app.app_context():

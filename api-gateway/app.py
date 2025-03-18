@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import requests
 
 app = Flask(__name__)
-USER_SERVICE_URL = "http://user_service:5001"
+USER_SERVICE_URL = "http://users-service:5001"
 
 @app.route('/register', methods=['POST'])
 def register():
