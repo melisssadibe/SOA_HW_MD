@@ -4,3 +4,4 @@ grpcio
 protobuf
 googleapis-common-protos
 PyJWT
+marshmallow

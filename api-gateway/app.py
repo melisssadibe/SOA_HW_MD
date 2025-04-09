@@ -2,9 +2,11 @@ from flask import Flask, request, jsonify
 import requests
 import grpc
 from google.protobuf.json_format import MessageToDict
+import jwt
+from marshmallow import Schema, fields, ValidationError, validate
+
 import post_pb2
 import post_pb2_grpc
-import jwt
 
 app = Flask(__name__)
 USER_SERVICE_URL = "http://users-service:5001"
@@ -22,10 +24,6 @@ class UpdatePostSchema(Schema):
     is_private = fields.Boolean()
     tags = fields.List(fields.String())
 
-def get_grpc_stub():
-    channel = grpc.insecure_channel(POSTS_SERVICE_HOST)
-    return post_pb2_grpc.PostServiceStub(channel)
-
 def decode_token(auth_header):
     if not auth_header:
         return None
@@ -36,8 +34,12 @@ def decode_token(auth_header):
             token = auth_header
         payload = jwt.decode(token, "your_secret_key", algorithms=["HS256"])
         return payload.get("username")
-    except Exception as e:
+    except Exception:
         return None
+
+def get_grpc_stub():
+    channel = grpc.insecure_channel(POSTS_SERVICE_HOST)
+    return post_pb2_grpc.PostServiceStub(channel)
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -64,14 +66,18 @@ def create_post():
     if not user_id:
         return jsonify({"message": "Unauthorized"}), 401
 
-    data = request.json
+    try:
+        data = CreatePostSchema().load(request.json)
+    except ValidationError as err:
+        return jsonify({"errors": err.messages}), 401
+
     stub = get_grpc_stub()
     grpc_request = post_pb2.CreatePostRequest(
         title=data["title"],
         description=data["description"],
         creator_id=user_id,
-        is_private=data.get("is_private", False),
-        tags=data.get("tags", [])
+        is_private=data["is_private"],
+        tags=data["tags"]
     )
     grpc_response = stub.CreatePost(grpc_request)
     return jsonify(MessageToDict(grpc_response))
@@ -88,7 +94,7 @@ def get_post(post_id):
         grpc_response = stub.GetPost(grpc_request)
         return jsonify(MessageToDict(grpc_response))
     except grpc.RpcError as e:
-        return jsonify({"message": e.details()}), e.code().value[0]
+        return jsonify({"message": e.details()}), 401
 
 @app.route('/posts/<post_id>', methods=['PUT'])
 def update_post(post_id):
@@ -96,7 +102,11 @@ def update_post(post_id):
     if not user_id:
         return jsonify({"message": "Unauthorized"}), 401
 
-    data = request.json
+    try:
+        data = UpdatePostSchema().load(request.json)
+    except ValidationError as err:
+        return jsonify({"errors": err.messages}), 401
+
     stub = get_grpc_stub()
     grpc_request = post_pb2.UpdatePostRequest(
         id=post_id,
@@ -110,7 +120,7 @@ def update_post(post_id):
         grpc_response = stub.UpdatePost(grpc_request)
         return jsonify(MessageToDict(grpc_response))
     except grpc.RpcError as e:
-        return jsonify({"message": e.details()}), e.code().value[0]
+        return jsonify({"message": e.details()}), 401
 
 @app.route('/posts/<post_id>', methods=['DELETE'])
 def delete_post(post_id):
@@ -124,7 +134,7 @@ def delete_post(post_id):
         stub.DeletePost(grpc_request)
         return '', 204
     except grpc.RpcError as e:
-        return jsonify({"message": e.details()}), e.code().value[0]
+        return jsonify({"message": e.details()}), 401
 
 @app.route('/posts', methods=['GET'])
 def list_posts():

@@ -30,6 +30,17 @@ services:
     environment:
       - USER_SERVICE_URL=http://user_service:5001
 
+  postgres-db-posts:
+    image: postgres:15
+    container_name: postgres-db-posts
+    restart: always
+    environment:
+      POSTGRES_DB: posts_db
+      POSTGRES_USER: user_admin
+      POSTGRES_PASSWORD: password
+    volumes:
+      - data-post:/var/lib/postgresql/data
+
   posts-service:
     build:
       context: .
@@ -37,7 +48,8 @@ services:
     ports:
       - "50051:50051"
     depends_on:
-      - postgres-db
+      - postgres-db-posts
 
 volumes:
   data:
+  data-post:

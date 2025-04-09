@@ -12,3 +12,5 @@ grpcio-tools
 protobuf
 googleapis-common-protos
 flask-marshmallow
+SQLAlchemy
+psycopg2-binary
