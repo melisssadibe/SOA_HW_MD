@@ -20,13 +20,24 @@ services:
       - DATABASE_URL=postgresql://user_admin:password@postgres-db:5432/user_db
 
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
     ports:
       - "8000:5000"
     depends_on:
       - users-service
     environment:
       - USER_SERVICE_URL=http://user_service:5001
+
+  posts-service:
+    build:
+      context: .
+      dockerfile: posts-service/Dockerfile
+    ports:
+      - "50051:50051"
+    depends_on:
+      - postgres-db
 
 volumes:
   data:

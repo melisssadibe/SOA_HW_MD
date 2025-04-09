@@ -1,0 +1,14 @@
+flask
+flask_sqlalchemy
+flask_cors
+psycopg2-binary
+werkzeug
+pyjwt
+pytest
+flask-testing
+marshmallow
+grpcio 
+grpcio-tools
+protobuf
+googleapis-common-protos
+flask-marshmallow

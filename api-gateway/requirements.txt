@@ -1,2 +1,6 @@
 flask
 requests
+grpcio
+protobuf
+googleapis-common-protos
+PyJWT
