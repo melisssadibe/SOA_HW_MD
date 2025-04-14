@@ -117,9 +117,6 @@ class PostService(post_pb2_grpc.PostServiceServicer):
     def ListPosts(self, request, context):
         session = Session()
         try:
-            # Only return posts that are either:
-            # 1. Public (is_private = False) OR
-            # 2. Created by the requester (private but owned by requester)
             posts_query = session.query(Post).filter(
                 (Post.is_private == False) | (Post.creator_id == request.requester_id)
             ).order_by(Post.created_at.desc())
