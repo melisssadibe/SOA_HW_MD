@@ -8,6 +8,12 @@ service PostService {
   rpc UpdatePost (UpdatePostRequest) returns (PostResponse);
   rpc DeletePost (DeletePostRequest) returns (Empty);
   rpc ListPosts (ListPostsRequest) returns (ListPostsResponse);
+
+  // --- Новые методы ---
+  rpc ViewPost (ViewPostRequest) returns (Empty);
+  rpc LikePost (LikePostRequest) returns (Empty);
+  rpc CommentPost (CommentPostRequest) returns (Empty);
+  rpc ListPostComments (ListPostCommentsRequest) returns (ListPostCommentsResponse);
 }
 
 message Post {
@@ -64,4 +70,39 @@ message ListPostsResponse {
 
 message Empty {}
 
+message ViewPostRequest {
+  string post_id = 1;
+  string viewer_id = 2;
+  string viewed_at = 3; 
+}
 
+message LikePostRequest {
+  string post_id = 1;
+  string liker_id = 2;
+  string liked_at = 3; 
+}
+
+message CommentPostRequest {
+  string post_id = 1;
+  string commenter_id = 2;
+  string content = 3;
+  string commented_at = 4;
+}
+
+message ListPostCommentsRequest {
+  string post_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message Comment {
+  string id = 1;
+  string post_id = 2;
+  string commenter_id = 3;
+  string content = 4;
+  string commented_at = 5;
+}
+
+message ListPostCommentsResponse {
+  repeated Comment comments = 1;
+}

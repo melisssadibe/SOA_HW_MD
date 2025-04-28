@@ -28,6 +28,31 @@ class Post(Base):
     is_private = Column(Boolean, default=False)  # Simple boolean column
     tags = Column(ARRAY(String), default=[])
 
+class PostView(Base):
+    __tablename__ = 'post_views'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    post_id = Column(String, nullable=False)
+    viewer_id = Column(String, nullable=False)
+    viewed_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class PostLike(Base):
+    __tablename__ = 'post_likes'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    post_id = Column(String, nullable=False)
+    liker_id = Column(String, nullable=False)
+    liked_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class PostComment(Base):
+    __tablename__ = 'post_comments'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    post_id = Column(String, nullable=False)
+    commenter_id = Column(String, nullable=False)
+    content = Column(Text, nullable=False)
+    commented_at = Column(DateTime, default=datetime.datetime.utcnow)
+
 Base.metadata.create_all(engine)
 
 class PostService(post_pb2_grpc.PostServiceServicer):
@@ -130,6 +155,91 @@ class PostService(post_pb2_grpc.PostServiceServicer):
             context.abort(grpc.StatusCode.INTERNAL, f"Error listing posts: {str(e)}")
         finally:
             session.close()
+
+    def ViewPost(self, request, context):
+        session = Session()
+        try:
+            post = session.query(Post).filter_by(id=request.post_id).first()
+            if not post:
+                context.abort(grpc.StatusCode.NOT_FOUND, "Post not found")
+            
+            view = PostView(
+                post_id=request.post_id,
+                viewer_id=request.viewer_id,
+                viewed_at=datetime.datetime.fromisoformat(request.viewed_at)
+            )
+            session.add(view)
+            session.commit()
+            return post_pb2.Empty()
+        except Exception as e:
+            context.abort(grpc.StatusCode.INTERNAL, f"Error viewing post: {str(e)}")
+        finally:
+            session.close()
+
+    def LikePost(self, request, context):
+        session = Session()
+        try:
+            post = session.query(Post).filter_by(id=request.post_id).first()
+            if not post:
+                context.abort(grpc.StatusCode.NOT_FOUND, "Post not found")
+            
+            like = PostLike(
+                post_id=request.post_id,
+                liker_id=request.liker_id,
+                liked_at=datetime.datetime.fromisoformat(request.liked_at)
+            )
+            session.add(like)
+            session.commit()
+            return post_pb2.Empty()
+        except Exception as e:
+            context.abort(grpc.StatusCode.INTERNAL, f"Error liking post: {str(e)}")
+        finally:
+            session.close()
+
+    def CommentPost(self, request, context):
+        session = Session()
+        try:
+            post = session.query(Post).filter_by(id=request.post_id).first()
+            if not post:
+                context.abort(grpc.StatusCode.NOT_FOUND, "Post not found")
+            
+            comment = PostComment(
+                post_id=request.post_id,
+                commenter_id=request.commenter_id,
+                content=request.content,
+                commented_at=datetime.datetime.fromisoformat(request.commented_at)
+            )
+            session.add(comment)
+            session.commit()
+            return post_pb2.Empty()
+        except Exception as e:
+            context.abort(grpc.StatusCode.INTERNAL, f"Error commenting on post: {str(e)}")
+        finally:
+            session.close()
+
+    def ListPostComments(self, request, context):
+        session = Session()
+        try:
+            comments_query = session.query(PostComment).filter_by(post_id=request.post_id).order_by(PostComment.commented_at.desc())
+
+            start = (request.page - 1) * request.page_size
+            end = start + request.page_size
+            comments = comments_query.slice(start, end).all()
+
+            return post_pb2.ListPostCommentsResponse(comments=[
+                post_pb2.Comment(
+                    id=c.id,
+                    post_id=c.post_id,
+                    commenter_id=c.commenter_id,
+                    content=c.content,
+                    commented_at=c.commented_at.isoformat()
+                ) for c in comments
+            ])
+        except Exception as e:
+            context.abort(grpc.StatusCode.INTERNAL, f"Error listing comments: {str(e)}")
+        finally:
+            session.close()
+
 
     def to_proto(self, post):
         return post_pb2.Post(
