@@ -5,3 +5,4 @@ protobuf
 googleapis-common-protos
 PyJWT
 marshmallow
+kafka-python
