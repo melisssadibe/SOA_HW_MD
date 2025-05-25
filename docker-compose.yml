@@ -87,6 +87,36 @@ services:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
 
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    ports:
+      - "8123:8123"  # HTTP интерфейс
+      - "9000:9000"  # Native client
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    environment:
+      CLICKHOUSE_USER: admin
+      CLICKHOUSE_PASSWORD: admin123
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+
+  stats-service:
+    build:
+      context: ./stats-service
+    depends_on:
+      - kafka
+      - clickhouse
+    environment:
+      - CLICKHOUSE_HOST=clickhouse
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    ports:
+      - "50052:50052"  # gRPC API
+
 volumes:
   data:
   data-post:
+  clickhouse-data:

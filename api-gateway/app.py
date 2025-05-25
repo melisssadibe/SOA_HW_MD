@@ -10,13 +10,16 @@ import post_pb2_grpc
 from kafka import KafkaProducer
 import json
 import time
+import stats_pb2
+import stats_pb2_grpc
+
 
 app = Flask(__name__)
 USER_SERVICE_URL = "http://users-service:5001"
 POSTS_SERVICE_HOST = "posts-service:50051"
-
+STATS_SERVICE_HOST = "stats-service:50052"
 KAFKA_BOOTSTRAP_SERVERS = 'kafka:9092'
-time.sleep(5)
+time.sleep(15)
 try:
     producer = KafkaProducer(
         bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
@@ -68,6 +71,11 @@ def decode_token(auth_header):
 def get_grpc_stub():
     channel = grpc.insecure_channel(POSTS_SERVICE_HOST)
     return post_pb2_grpc.PostServiceStub(channel)
+
+def get_stats_stub():
+    channel = grpc.insecure_channel(STATS_SERVICE_HOST)
+    return stats_pb2_grpc.StatsServiceStub(channel)
+
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -298,6 +306,78 @@ def list_post_comments(post_id):
         return jsonify(MessageToDict(grpc_response))
     except grpc.RpcError as e:
         return jsonify({"message": e.details()}), 400
+
+@app.route('/stats/<post_id>', methods=['GET'])
+def get_post_stats(post_id):
+    stub = get_stats_stub()
+    grpc_request = stats_pb2.PostIdRequest(post_id=post_id)
+    try:
+        grpc_response = stub.GetPostStats(grpc_request)
+        return jsonify(MessageToDict(grpc_response))
+    except grpc.RpcError as e:
+        return jsonify({"message": e.details()}), 400
+
+
+@app.route('/stats/<post_id>/views', methods=['GET'])
+def get_post_views_over_time(post_id):
+    stub = get_stats_stub()
+    grpc_request = stats_pb2.PostIdRequest(post_id=post_id)
+    try:
+        grpc_response = stub.GetPostViewsOverTime(grpc_request)
+        return jsonify(MessageToDict(grpc_response))
+    except grpc.RpcError as e:
+        return jsonify({"message": e.details()}), 400
+
+
+@app.route('/stats/<post_id>/likes', methods=['GET'])
+def get_post_likes_over_time(post_id):
+    stub = get_stats_stub()
+    grpc_request = stats_pb2.PostIdRequest(post_id=post_id)
+    try:
+        grpc_response = stub.GetPostLikesOverTime(grpc_request)
+        return jsonify(MessageToDict(grpc_response))
+    except grpc.RpcError as e:
+        return jsonify({"message": e.details()}), 400
+
+
+@app.route('/stats/<post_id>/comments', methods=['GET'])
+def get_post_comments_over_time(post_id):
+    stub = get_stats_stub()
+    grpc_request = stats_pb2.PostIdRequest(post_id=post_id)
+    try:
+        grpc_response = stub.GetPostCommentsOverTime(grpc_request)
+        return jsonify(MessageToDict(grpc_response))
+    except grpc.RpcError as e:
+        return jsonify({"message": e.details()}), 400
+
+
+@app.route('/stats/top/posts', methods=['GET'])
+def get_top_posts():
+    metric = request.args.get("metric")
+    if metric not in ["likes", "views", "comments"]:
+        return jsonify({"message": "Invalid metric"}), 400
+    stub = get_stats_stub()
+    grpc_request = stats_pb2.TopRequest(metric=metric)
+    try:
+        grpc_response = stub.GetTopPosts(grpc_request)
+        return jsonify(MessageToDict(grpc_response))
+    except grpc.RpcError as e:
+        return jsonify({"message": e.details()}), 400
+
+
+@app.route('/stats/top/users', methods=['GET'])
+def get_top_users():
+    metric = request.args.get("metric")
+    if metric not in ["likes", "views", "comments"]:
+        return jsonify({"message": "Invalid metric"}), 400
+    stub = get_stats_stub()
+    grpc_request = stats_pb2.TopRequest(metric=metric)
+    try:
+        grpc_response = stub.GetTopUsers(grpc_request)
+        return jsonify(MessageToDict(grpc_response))
+    except grpc.RpcError as e:
+        return jsonify({"message": e.details()}), 400
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
