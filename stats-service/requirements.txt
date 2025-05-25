@@ -1,0 +1,5 @@
+clickhouse-driver
+kafka-python
+grpcio
+grpcio-tools
+protobuf
